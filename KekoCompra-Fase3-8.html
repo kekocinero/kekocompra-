@@ -559,6 +559,32 @@ function startVoice() {
     btn.classList.remove('listening');
   };
 }
+</script> <script>
+(function(){
+var wrap=document.createElement('div');
+wrap.style.cssText='margin-top:20px';
+wrap.innerHTML='<div class="section-title">Copia de seguridad</div>'
++'<div style="display:flex;gap:8px">'
++'<button id="kk-export" style="flex:1;padding:14px;border:none;border-radius:14px;background:#1a1a1a;color:#FF6B2C;font-weight:700;font-size:14px;font-family:inherit">💾 Exportar</button>'
++'<button id="kk-import" style="flex:1;padding:14px;border:1.5px solid #e0e0db;border-radius:14px;background:#fff;color:#666;font-weight:700;font-size:14px;font-family:inherit">📂 Importar</button>'
++'</div><input type="file" id="kk-file" accept=".json,application/json" style="display:none">';
+document.getElementById('home-view').appendChild(wrap);
+document.getElementById('kk-export').onclick=async function(){
+var data={};for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);data[k]=localStorage.getItem(k);}
+var fecha=new Date().toISOString().slice(0,10);
+var file=new File([JSON.stringify(data)],'KekoCompra-backup-'+fecha+'.json',{type:'application/json'});
+if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'Backup KekoCompra'});return;}catch(e){}}
+var a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;a.click();
+};
+document.getElementById('kk-import').onclick=function(){document.getElementById('kk-file').click();};
+document.getElementById('kk-file').onchange=function(ev){
+var f=ev.target.files[0];if(!f)return;
+var r=new FileReader();
+r.onload=function(){try{var data=JSON.parse(r.result);if(!confirm('¿Restaurar copia? Se reemplazarán los datos actuales.'))return;localStorage.clear();for(var k in data)localStorage.setItem(k,data[k]);alert('✅ Copia restaurada');location.reload();}catch(e){alert('❌ Archivo no válido');}};
+r.readAsText(f);
+};
+})();
 </script>
+
 </body>
 </html>
