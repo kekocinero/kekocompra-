@@ -625,5 +625,77 @@ document.getElementById('kk-scan-file').onchange=function(ev){
 };
 })();
 </script>
+  <script>
+(function(){
+var KEY='kekocompra_tiendas';
+var ICONS=["🔴","🟠","🟡","🟢","🔵","🟣","🛒","🏪","🥖","🧴","⚕️","🍊"];
+var sel="🛒";
+var saved=null;
+try{saved=JSON.parse(localStorage.getItem(KEY));}catch(e){}
+if(saved&&saved.length){
+  TIENDAS.length=0;
+  saved.forEach(function(t){TIENDAS.push(t);});
+}else{
+  if(!TIENDAS.some(function(t){return t.id==='carrefour';}))TIENDAS.push({id:'carrefour',label:'Carrefour',icon:'🔵'});
+  if(!TIENDAS.some(function(t){return t.id==='aldi';}))TIENDAS.push({id:'aldi',label:'Aldi',icon:'🟠'});
+  localStorage.setItem(KEY,JSON.stringify(TIENDAS));
+}
+function saveT(){localStorage.setItem(KEY,JSON.stringify(TIENDAS));}
+function refreshSel(){
+  var ts=document.getElementById('new-tienda');if(!ts)return;
+  ts.innerHTML='';
+  TIENDAS.forEach(function(t){var o=document.createElement('option');o.value=t.id;o.textContent=t.icon+' '+t.label;ts.appendChild(o);});
+}
+refreshSel();
+var wrap=document.createElement('div');
+wrap.style.cssText='margin-top:10px';
+wrap.innerHTML=
+'<button id="kk-tiendas-btn" style="width:100%;padding:14px;border-radius:14px;border:1.5px solid #e0e0db;background:#fff;color:#FF6B2C;font-size:14px;font-weight:700;font-family:inherit">🏪 Gestionar mis tiendas</button>'
++'<div id="kk-tiendas-panel" style="display:none;background:#fff;border-radius:14px;padding:16px;margin-top:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">'
++'<div style="font-size:11px;color:#999;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Mis tiendas</div>'
++'<div id="kk-tiendas-list"></div>'
++'<div style="margin-top:14px;border-top:2px solid #f0f0ec;padding-top:14px">'
++'<input type="text" id="kk-nueva-tienda" placeholder="Nueva tienda (ej. Aldi)" style="width:100%;padding:10px 14px;border-radius:8px;border:1.5px solid #e0e0db;font-size:15px;margin-bottom:10px;outline:none;font-family:inherit">'
++'<div id="kk-tienda-icons" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>'
++'<button id="kk-add-tienda" style="width:100%;padding:12px;border-radius:8px;border:none;background:#FF6B2C;color:#fff;font-weight:700;font-size:14px;font-family:inherit">➕ Añadir tienda</button>'
++'</div>'
++'<button id="kk-tiendas-cerrar" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e0e0db;background:#fff;color:#666;font-size:14px;font-family:inherit;margin-top:10px">Cerrar</button>'
++'</div>';
+document.getElementById('home-view').appendChild(wrap);
+var btn=document.getElementById('kk-tiendas-btn');
+var panel=document.getElementById('kk-tiendas-panel');
+var listEl=document.getElementById('kk-tiendas-list');
+var iconsEl=document.getElementById('kk-tienda-icons');
+var inp=document.getElementById('kk-nueva-tienda');
+function renderList(){
+  listEl.innerHTML=TIENDAS.map(function(t){
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0ec"><span style="font-size:18px">'+t.icon+'</span><span style="flex:1;font-size:14px;color:#1a1a1a">'+t.label+'</span><button onclick="kkDelTienda(\''+t.id+'\')" style="width:28px;height:28px;border-radius:8px;border:none;background:#f0f0ec;color:#999;font-size:18px;line-height:1">×</button></div>';
+  }).join('')||'<div style="color:#bbb;font-size:13px;padding:8px 0">No tienes tiendas todavía</div>';
+}
+function renderIcons(){
+  iconsEl.innerHTML=ICONS.map(function(ic){
+    var bg=ic===sel?'rgba(255,107,44,0.15)':'#f5f5f0';
+    var ol=ic===sel?'outline:2px solid #FF6B2C;':'';
+    return '<button onclick="kkSelIcon(\''+ic+'\')" style="width:36px;height:36px;border-radius:8px;border:none;background:'+bg+';'+ol+'font-size:18px">'+ic+'</button>';
+  }).join('');
+}
+window.kkSelIcon=function(ic){sel=ic;renderIcons();};
+window.kkDelTienda=function(id){
+  var t=TIENDAS.find(function(x){return x.id===id;});if(!t)return;
+  if(!confirm('¿Eliminar la tienda "'+t.label+'"?'))return;
+  var idx=TIENDAS.findIndex(function(x){return x.id===id;});if(idx>-1)TIENDAS.splice(idx,1);
+  saveT();refreshSel();renderList();
+};
+btn.onclick=function(){panel.style.display='block';btn.style.display='none';sel="🛒";renderList();renderIcons();};
+document.getElementById('kk-tiendas-cerrar').onclick=function(){panel.style.display='none';btn.style.display='block';};
+document.getElementById('kk-add-tienda').onclick=function(){
+  var name=inp.value.trim();if(!name)return;
+  TIENDAS.push({id:'t'+Date.now(),label:name,icon:sel});
+  saveT();refreshSel();renderList();
+  inp.value='';sel="🛒";renderIcons();
+};
+inp.onkeydown=function(e){if(e.key==='Enter')document.getElementById('kk-add-tienda').onclick();};
+})();
+</script>
 </body>
 </html>
