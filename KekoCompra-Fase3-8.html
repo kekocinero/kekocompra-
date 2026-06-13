@@ -612,7 +612,7 @@ document.getElementById('kk-scan-file').onchange=function(ev){
       var raw=localStorage.getItem('kekocompra_v3');var listas=raw?JSON.parse(raw):[];
       var lista={id:'ticket-'+Date.now(),name:'🧾 '+(t.tienda||'Ticket')+' '+(t.fecha||''),icon:'🧾',items:[]};
       t.items.forEach(function(it,i){
-        lista.items.push({id:Date.now()+i,name:it.name,section:it.section||'alimentacion',tienda:(t.tienda||'').toLowerCase(),qty:it.qty||1,price:it.price||0,done:true});
+        lista.items.push({id:Date.now()+i,name:it.name,section:it.section||'alimentacion',tienda:'',qty:it.qty||1,price:it.price||0,done:true});
       });
       listas.push(lista);
       localStorage.setItem('kekocompra_v3',JSON.stringify(listas));
