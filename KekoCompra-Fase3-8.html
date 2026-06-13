@@ -585,6 +585,45 @@ r.readAsText(f);
 };
 })();
 </script>
-
+<script>
+(function(){
+var WORKER_URL='https://kekocompra-scanner.kekosoa.workers.dev/';
+var wrap=document.createElement('div');
+wrap.style.cssText='margin-top:14px';
+wrap.innerHTML='<button id="kk-scan" style="width:100%;padding:16px;border:none;border-radius:14px;background:linear-gradient(135deg,#FF6B2C,#ff8f5e);color:#fff;font-weight:800;font-size:15px;font-family:inherit">📸 Escanear ticket</button>'
++'<input type="file" id="kk-scan-file" accept="image/*" capture="environment" style="display:none">'
++'<div id="kk-scan-status" style="text-align:center;color:#999;font-size:13px;margin-top:8px;display:none"></div>';
+document.getElementById('home-view').appendChild(wrap);
+var st=document.getElementById('kk-scan-status');
+document.getElementById('kk-scan').onclick=function(){document.getElementById('kk-scan-file').click();};
+document.getElementById('kk-scan-file').onchange=function(ev){
+  var f=ev.target.files[0];if(!f)return;
+  st.style.display='block';st.textContent='⏳ Leyendo ticket con IA...';
+  var img=new Image();
+  img.onload=function(){
+    var c=document.createElement('canvas');var max=1400;var sc=Math.min(1,max/Math.max(img.width,img.height));
+    c.width=img.width*sc;c.height=img.height*sc;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    var b64=c.toDataURL('image/jpeg',0.85).split(',')[1];
+    fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:b64,media_type:'image/jpeg'})})
+    .then(function(r){return r.json();})
+    .then(function(t){
+      if(!t.items||!t.items.length){st.textContent='❌ No se pudo leer el ticket. Prueba con mejor luz.';return;}
+      var raw=localStorage.getItem('kekocompra_v3');var listas=raw?JSON.parse(raw):[];
+      var lista={id:'ticket-'+Date.now(),name:'🧾 '+(t.tienda||'Ticket')+' '+(t.fecha||''),icon:'🧾',items:[]};
+      t.items.forEach(function(it,i){
+        lista.items.push({id:Date.now()+i,name:it.name,section:'alimentacion',tienda:(t.tienda||'').toLowerCase(),qty:it.qty||1,price:it.price||0,done:true});
+      });
+      listas.push(lista);
+      localStorage.setItem('kekocompra_v3',JSON.stringify(listas));
+      st.textContent='✅ '+t.items.length+' productos importados ('+(t.total||'?')+'€). Recargando...';
+      setTimeout(function(){location.reload();},1200);
+    })
+    .catch(function(e){st.textContent='❌ Error: '+e.message;});
+  };
+  var rd=new FileReader();rd.onload=function(){img.src=rd.result;};rd.readAsDataURL(f);
+};
+})();
+</script>
 </body>
 </html>
